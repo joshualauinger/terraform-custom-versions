@@ -1,0 +1,104 @@
+try {
+    // Segment 2
+    switch( envISD.toLowerCase() ) {
+        case "unclassified":
+            isd = "u";
+            break;
+        case "protected":
+            isd = "p";
+            break;
+        case "secret":
+            isd = "s";
+            break;
+        case "inconfidence":
+            isd = "u";
+            break;
+        default:
+            throw "Something went wrong (Unexpected ISD)";
+    }
+
+    // Segment 3
+    dc = envLocation.toLowerCase()
+
+    // Segment 4
+    func = serverFunction.toLowerCase()
+
+    // Segment 5
+    switch( envLifecycle.toLowerCase() ) {
+        case "prod":
+            lcyc = "p";
+            break;
+        case "mgmt":
+            lcyc = "m";
+            break;
+        case "tst":
+            lcyc = "t";
+            break;
+        case "dev":
+            lcyc = "d";
+            break;
+        default:
+            throw "Something went wrong (Unexpected Lifecycle)";
+    }
+
+    // Segment 6
+    machineNames = [];
+    machinePrefix = "sie" + isd + dc + func + lcyc
+    for (i = 0; i < numOfMachines; i++) {
+
+        uid = generateUID(machinePrefix)
+        fullMachineName = machinePrefix + uid
+
+        dataGridObj = { "machineName": fullMachineName }
+
+        machineNames.push(dataGridObj)
+    }
+
+    return machineNames;
+
+}
+catch(error) {
+    return [ error ];
+}
+
+function generateUID( machinePrefix ) {
+
+    available = false;
+    //while ( !available ) {
+
+        // Generate a random number and pad to four digits. e.g 0006
+        randNum = Math.floor(Math.random() * 9999);
+        instance = randNum.toString()
+        //instance = randNum.padStart(4, '0'); // Not available in this JS version
+        while (instance.length < 4) instance = "0" + instance;
+
+        // Combine the full SIE compliant name.
+        // Annoyingly can't do `sie${var}` syntax due to illegal char error.
+        machineName = machinePrefix + instance;
+
+        
+        try {
+            //existsInActiveDirectory(MachineName)
+            test = existsInDNS(machineName)
+            //existsInvSphere(MachineName)
+        }
+        catch ( err ) {
+            throw err
+        }
+
+        //if (!existsInActiveDirectory && !existsInDNS && !existsInvSphere) {
+            //available = true
+        //}
+    //}
+
+    return instance;
+}
+
+function existsInDNS( machineName ) {
+
+    return dns.resolve4( 'www.google.com', function (err, addresses) {
+        if (err) throw err;
+
+        return addresses;
+    });
+}
